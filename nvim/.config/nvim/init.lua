@@ -9,6 +9,9 @@ vim.cmd("set shiftwidth=2")
 -- set leader
 vim.g.mapleader = " "
 
+-- show hidden files/folders
+vim.g.netrw_list_hide = ""
+
 -- set line numbers and relative line numbers
 vim.opt.number = true
 vim.opt.relativenumber = true
@@ -18,7 +21,10 @@ require("config.lazy")
 
 -- setup telescope (fuzzy finding)
 local builtin = require('telescope.builtin')
-vim.keymap.set('n', '<leader>p', builtin.find_files, { desc = 'Telescope find files'})
+vim.keymap.set('n', '<leader>p', function()
+                                      require('telescope.builtin').find_files({ hidden = true })
+                                 end,
+  { desc = 'Telescope find files'})
 vim.keymap.set('n', '<leader>g', builtin.live_grep, { desc = 'Telescope live grep'})
 vim.keymap.set('n', '<leader>fb', builtin.buffers, { desc = 'Telescope buffers'})
 vim.keymap.set('n', '<leader>fh', builtin.help_tags, { desc = 'Telescope help tags'})
