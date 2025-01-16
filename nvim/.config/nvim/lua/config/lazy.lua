@@ -32,4 +32,8 @@ spec = {
   install = { colorscheme = { "habamax" } },
   -- automatically check for plugin updates
   checker = { enabled = true },
+  -- exclude node_modules
+  opts = {
+    exclude_dirs = { "**/node_modules/**" },
+  },
 })

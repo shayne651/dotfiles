@@ -5,7 +5,10 @@ return {
       config = function ()
         require('telescope').setup({
           defaults = {
-            file_ignore_patterns = { "./bruno/.*"},
+            file_ignore_patterns = {
+              "bruno*",
+              "node_modules"
+            },
           },
         })
       end
