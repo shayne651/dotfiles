@@ -1,0 +1,21 @@
+- name: Install dotfiles
+  hosts: localhost
+  gather_facts: yes
+  tasks:
+    - name: Checking OS
+      debug:
+        msg: "Running {{ ansible_facts['os_family'] }}"
+
+    - name: Ensuring brew is installed
+      when: ansible_facts['os_family'] == "Darwin"
+      block: 
+        - name: Check if brew is installed
+          command: which brew
+          register: brew_check
+          ignore_errors: yes
+          changed_when: false
+
+        - name: Install brew
+          shell: |
+            /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+          when: brew_check.rc != 0

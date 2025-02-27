@@ -1,0 +1,83 @@
+- name: Install dependencies
+  host: localhost
+  gather_facts: yes
+  tasks: 
+
+  # INSTALL GIT
+    - name: Install git on mac
+      when: ansible_facts['os_family']== "Darwin"
+      homebrew:
+        name: git
+        state: present
+
+    - name: Install git on ubuntu
+      when: ansible_facts['os_family'] == "Debian"
+      become: yes
+      apt:
+          name: git
+          state: present
+          update_cache: yes
+
+  # INSTALL STOW
+    - name: Install stow on mac
+      when: ansible_facts['os_family'] == "Darwin"
+      homebrew:
+        name: stow
+        state: present
+
+    - name: Install stow on ubuntu
+      when: ansible_facts['os_family'] == "Debian"
+      become: yes
+      apt:
+        name: stow
+        state: present
+
+  # INSTALL nvim
+    - name: Install nvim on mac
+      when: ansible_facts['os_family'] == "Darwin"
+      homebrew:
+        name: nvim
+        state: present
+
+    - name: Install nvim on ubuntu
+      when: ansible_facts['os_family'] == "Debian"
+      become: yes
+      apt:
+        name: nvim
+        state: present 
+
+# INSTALL nvim
+    - name: Install tmux on mac
+      when: ansible_facts['os_family'] == "Darwin"
+      homebrew:
+        name: tmux
+        state: present
+
+    - name: Install tmux on ubuntu
+      when: ansible_facts['os_family'] == "Debian"
+      become: yes
+      apt:
+        name: tmux
+        state: present
+
+# INSTALL zsh
+    - name: Install zsh if not mac
+      when: ansible_facts['os_family'] != "Darwin"
+      tasks: 
+        - name: Install zsh
+          become: yes
+          apt:
+              name: zsh
+              state: present
+
+        - name: Get current shell
+          command: echo $SHELL
+          register: current_shell
+          changed_when: false
+
+        - name: Set shell
+          become: yes
+          user: 
+            name: "{{ ansible_env.USER }}"
+            shell: /usr/bin/zsh
+          when: current_shell.stdout != "usr/bin/zsh"

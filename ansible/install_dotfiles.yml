@@ -1,0 +1,34 @@
+- name: Install dotfiles
+  gather_facts: yes
+  tasks: 
+
+  # CLONE dotfiles repo
+    - name: Clone dotfiles
+      git:
+        repo: https://github.com/shayne651/dotfiles.git
+        dest: ~/
+        clone: yes
+        update: yes
+        recursive: yes
+
+# CONFIGURE zsh
+    - name: Configure zsh
+      shell: |
+        curl -sS https://starship.rs/install.sh | sh
+        cd ~/dotfiles
+        stow -vv --target $HOME tmux
+        source ~/.zshrc
+
+# CONFIGURE nvim
+    - name: Configure nvim on mac
+      shell: |
+        cd ~/dotfiles 
+        stow -vv --target $HOME nvim
+
+#CONFIGURE tmux
+    - name: Configure tmux
+      shell: |
+        cd ~/dotfiles
+        stow --v --target $HOME tmux
+        tmux source ~/.tmux/.tmux.conf
+        tmux source-file ~/.tmux/.tmux.conf
