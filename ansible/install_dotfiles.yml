@@ -2,7 +2,6 @@
   hosts: localhost
   gather_facts: yes
   become: yes
-  become_user: reefmonitor 
   vars:
     dotfiles_dir: "{{ ansible_env.HOME }}/dotfiles"
     home_dir: "{{ ansible_env.HOME }}"
@@ -35,5 +34,6 @@
     - name: Configure tmux
       shell: |
         stow --v --target={{ home_dir }} tmux
+        {{ home_dir }}/.tmux/plugins/tpm/bin/install_plugins
       args:
         chdir: "{{ dotfiles_dir }}"
