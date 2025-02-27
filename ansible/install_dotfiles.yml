@@ -1,16 +1,6 @@
 - name: Install dotfiles
   gather_facts: yes
   tasks: 
-
-  # CLONE dotfiles repo
-    - name: Clone dotfiles
-      git:
-        repo: https://github.com/shayne651/dotfiles.git
-        dest: ~/
-        clone: yes
-        update: yes
-        recursive: yes
-
 # CONFIGURE zsh
     - name: Configure zsh
       shell: |
