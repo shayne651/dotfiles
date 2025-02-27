@@ -1,24 +1,39 @@
 - name: Install dotfiles
+  hosts: localhost
   gather_facts: yes
-  tasks: 
-# CONFIGURE zsh
-    - name: Configure zsh
-      shell: |
-        curl -sS https://starship.rs/install.sh | sh
-        cd ~/dotfiles
-        stow -vv --target $HOME tmux
-        source ~/.zshrc
+  become: yes
+  become_user: reefmonitor 
+  vars:
+    dotfiles_dir: "{{ ansible_env.HOME }}/dotfiles"
+    home_dir: "{{ ansible_env.HOME }}"
+
+  tasks:
+    # CONFIGURE ZSH
+    - name: Install Starship
+      shell: curl -sS https://starship.rs/install.sh | sh -s -- -y
+
+    - name: Configure dotfiles with stow
+      shell: stow -vv --target="{{ home_dir }}" zshrc
+      args:
+        chdir: "{{ dotfiles_dir }}"
+
+    - name: Ensure Zsh is the default shell
+      lineinfile:
+        path: "{{ home_dir }}/.bashrc"
+        line: "exec zsh"
+        create: yes
+
 
 # CONFIGURE nvim
-    - name: Configure nvim on mac
+    - name: Configure nvim
       shell: |
-        cd ~/dotfiles 
-        stow -vv --target $HOME nvim
+        stow --target={{ home_dir }} nvim 
+      args:
+        chdir: "{{ dotfiles_dir }}"
 
 #CONFIGURE tmux
     - name: Configure tmux
       shell: |
-        cd ~/dotfiles
-        stow --v --target $HOME tmux
-        tmux source ~/.tmux/.tmux.conf
-        tmux source-file ~/.tmux/.tmux.conf
+        stow --v --target={{ home_dir }} tmux
+      args:
+        chdir: "{{ dotfiles_dir }}"

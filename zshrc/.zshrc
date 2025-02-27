@@ -1,5 +1,8 @@
 eval "$(starship init zsh)"
 
+bindkey '^[[Z' reverse-menu-complete
+export TERM=xterm-256color
+
 source ~/.config/zsh-autosuggestions/zsh-autosuggestions.zsh
 source ~/.config/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 source ~/.config/zsh-autocomplete/zsh-autocomplete.plugin.zsh
