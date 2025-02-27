@@ -1,2 +1,0 @@
-## RUN
-stow -vv --target $HOME <module>

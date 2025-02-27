@@ -1,0 +1,91 @@
+- name: Install dependencies
+  hosts: localhost
+  gather_facts: yes
+  become: yes
+  tasks:
+
+    # INSTALL GIT
+    - name: Install git on mac
+      when: ansible_facts['os_family'] == "Darwin"
+      homebrew:
+        package: git
+        state: present
+
+    - name: Install git on ubuntu
+      when: ansible_facts['os_family'] == "Debian"
+      apt:
+        name: git
+        state: present
+        update_cache: yes
+
+    # INSTALL STOW
+    - name: Install stow on mac
+      when: ansible_facts['os_family'] == "Darwin"
+      homebrew:
+        package: stow
+        state: present
+
+    - name: Install stow on ubuntu
+      when: ansible_facts['os_family'] == "Debian" 
+      apt:
+        name: stow
+        state: present
+
+    # INSTALL NVIM
+    - name: Install nvim on mac
+      when: ansible_facts['os_family'] == "Darwin"
+      homebrew:
+        package: nvim
+        state: present
+
+    - name: Install nvim on ubuntu
+      when: ansible_facts['os_family'] == "Debian"
+      snap:
+        name: nvim
+        classic: yes 
+
+    # INSTALL TMUX
+    - name: Install tmux on mac
+      when: ansible_facts['os_family'] == "Darwin"
+      homebrew:
+        package: tmux
+        state: present
+
+    - name: Install tmux on ubuntu
+      when: ansible_facts['os_family'] == "Debian"
+      apt:
+        name: tmux
+        state: present
+
+    # INSTALL ZSH
+    - name: Install zsh if not mac
+      when: ansible_facts['os_family'] != "Darwin"
+      block:
+        - name: Install zsh
+          apt:
+            name: zsh
+            state: present
+
+        - name: Get current shell
+          command: echo $SHELL
+          register: current_shell
+          changed_when: false
+
+        - name: Set shell
+          user: 
+            name: "{{ ansible_env.USER }}"
+            shell: /usr/bin/zsh
+          when: current_shell.stdout != "/usr/bin/zsh"
+
+    # INSTALL rbenv
+    - name: Install rbenv on mac
+      when: ansible_facts['os_family'] == "Darwin"
+      homebrew:
+        package: rbenv
+        state: present
+
+    - name: Install rbenv on ubuntu
+      when: ansible_facts['os_family'] == "Debian"
+      apt:
+        name: rbenv
+        state: present
