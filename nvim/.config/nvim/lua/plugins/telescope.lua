@@ -7,9 +7,13 @@ return {
           defaults = {
             file_ignore_patterns = {
               "bruno*",
-              "node_modules"
+              "node_modules",
+              ".git"
             },
-          },
+          },,
+          find_files = {
+              hidden = true
+          }
         })
       end
     }
