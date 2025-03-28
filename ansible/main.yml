@@ -1,4 +1,6 @@
 ---
 - import_playbook: install_mac_dependencies.yml
 - import_playbook: install_dependencies.yml
+- import_playbook: install_ubuntu_desktop.yml
+- import_playbook: install_common.yml
 - import_playbook: install_dotfiles.yml

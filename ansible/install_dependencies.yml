@@ -1,7 +1,6 @@
 - name: Install dependencies
   hosts: localhost
   gather_facts: yes
-  become: yes
   tasks:
 
     # INSTALL GIT
@@ -13,6 +12,7 @@
 
     - name: Install git on ubuntu
       when: ansible_facts['os_family'] == "Debian"
+      become: yes
       apt:
         name: git
         state: present
@@ -27,6 +27,7 @@
 
     - name: Install stow on ubuntu
       when: ansible_facts['os_family'] == "Debian" 
+      become: yes
       apt:
         name: stow
         state: present
@@ -40,6 +41,7 @@
 
     - name: Install nvim on ubuntu
       when: ansible_facts['os_family'] == "Debian"
+      become: yes
       snap:
         name: nvim
         classic: yes 
@@ -53,6 +55,7 @@
 
     - name: Install tmux on ubuntu
       when: ansible_facts['os_family'] == "Debian"
+      become: yes
       apt:
         name: tmux
         state: present
@@ -60,6 +63,7 @@
     # INSTALL ZSH
     - name: Install zsh if not mac
       when: ansible_facts['os_family'] != "Darwin"
+      become: yes
       block:
         - name: Install zsh
           apt:
@@ -89,3 +93,19 @@
       apt:
         name: rbenv
         state: present
+
+    # INSTALL esp32tool
+    - name: Install esp32tool
+      pip:
+        name: esptool
+
+    # DOWNLOAD esp32 wroom firmware
+    - name: Download esp32 wroom firmware
+      get_url:
+        url: https://micropython.org/resources/firmware/ESP32_GENERIC-20241129-v1.24.1.bin
+        dest: ~/.config/esp32wroom_firmware.bin
+
+    # INSTALL mpremote (pushing files to esp32)
+    - name: Install mpremote
+      pip: 
+        name: mpremote
