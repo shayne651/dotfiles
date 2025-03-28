@@ -1,0 +1,42 @@
+- name: Install and Configure ubuntu desktop
+  gather_facts: yes
+  tasks:
+
+# Determining if the system is ubuntu desktop
+  - name: Check if GUI is installed
+      ansible.builtin.shell: "dpkg -l | grep -E 'ubuntu-desktop|gnome-shell|plasma-desktop'"
+      register: gui_check
+      changed_when: false
+      failed_when: false
+
+  - name: Set fact for Ubuntu type
+    ansible.builtin.set_fact:
+      ubuntu_type: "{{ 'desktop' if gui_check.stdout else 'server' }}"
+
+# INSTALLING hyprland
+  - name: Add specified repository into sources list
+    apt_repository:
+      repo: universe
+      state: present
+
+  - name: Install hyprland
+    when: {{ ubuntu_type }} == "desktop"
+    become: yes
+    apt:
+      name: hyprland
+      state: present
+      update_cache: yes
+
+# INSTALLING ghostty
+  - name: Installing ghostty
+    when: {{ ubuntu_type }} == "desktop"
+    snap:
+      name: ghostty
+      classic: yes
+
+# INSTALLING bruno
+  - name: Install bruno on ubuntu
+    when:{{ ubuntu_type }} == "desktop" 
+    snap:
+      name: bruno
+      classic: yes
