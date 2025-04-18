@@ -54,7 +54,7 @@ return {
     event = { 'BufReadPre', 'BufNewFile' },
     config = function()
       require('nvim-treesitter.configs').setup({
-        ensure_installed = { 'go', 'typescript', 'java', 'sql', 'dockerfile', 'dart' },
+        ensure_installed = { 'go', 'typescript', 'java', 'sql', 'dockerfile', 'dart', 'rust' },
         highlight = {
           enable = true,
           additional_vim_regex_highlighting = false,
@@ -119,7 +119,8 @@ return {
           'sqlls',
           'dockerls',
           'docker_compose_language_service',
-          'ast_grep'
+          'ast_grep',
+          'rust_analyzer'
         },
         handlers = {
           function(server_name)

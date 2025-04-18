@@ -10,7 +10,7 @@ return {
               "node_modules",
               ".git"
             },
-          },,
+          },
           find_files = {
               hidden = true
           }
