@@ -1,7 +1,5 @@
 - name: Install dotfiles
-  hosts: localhost
-  gather_facts: yes
-  tasks:
+  block:
     - name: Checking OS
       debug:
         msg: "Running {{ ansible_facts['os_family'] }}"

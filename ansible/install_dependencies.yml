@@ -1,7 +1,5 @@
 - name: Install dependencies
-  hosts: localhost
-  gather_facts: yes
-  tasks:
+  block:
 
     # INSTALL GIT
     - name: Install git on mac
