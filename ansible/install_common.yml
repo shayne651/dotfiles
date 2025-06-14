@@ -69,6 +69,19 @@
       name: go
       classic: yes
 
+# INSTALLING rust
+  - name: Install rust on mac
+    when: ansible_facts['os_family'] == "Darwin"
+    homebrew:
+      package: rust 
+      state: present
+
+  - name: Install rust on ubuntu
+    when: ansible_facts['os_family'] == "Debian"
+    become: yes
+    shell: |
+      curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
 # INSTALLING bruno
   - name: Install bruno on mac
     when: ansible_facts['os_family'] == "Darwin"
