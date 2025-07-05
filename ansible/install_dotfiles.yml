@@ -15,6 +15,9 @@
         - zsh-syntax-highlighting
         - nvim
         - tmux
+        - hyprland
+        - rofi
+        - waybar
 
     - name: Remove conflicting files
       file:
@@ -58,6 +61,14 @@
       args:
         chdir: "{{ dotfiles_dir }}"
 
+# CONFIGURE hyprland
+    - name: Configure hyprland
+      become: true
+      shell: |
+        stow --target={{ home_dir }} hyprland
+      args:
+        chdir: "{{ dotfiles_dir }}"
+
 #CONFIGURE tmux
     - name: Configure tmux
       become: true
@@ -71,9 +82,9 @@
       ignore_errors: yes 
 
     - name: Source .tmux.conf to reload tmux configuration
-      shell: tmux source-file /Users/shaynetaylor/.tmux.conf
+      shell: "tmux source-file {{ home_dir }}/.tmux.conf"
       when: ansible_facts['tmux']['session']['mysession'] is defined
 
     - name: Install tmux plugins using TPM
-      shell: /Users/shaynetaylor/.tmux/plugins/tpm/bin/install_plugins
+      shell: "{{ home_dir }}/.tmux/plugins/tpm/bin/install_plugins"
       when: ansible_facts['tmux']['session']['mysession'] is defined
