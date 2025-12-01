@@ -1,18 +1,50 @@
 - name: Install dotfiles
-  hosts: localhost
-  gather_facts: yes
-  become: yes
   vars:
-    dotfiles_dir: "{{ ansible_env.HOME }}/dotfiles"
-    home_dir: "{{ ansible_env.HOME }}"
+    home_dir: "{{ lookup('env', 'HOME') }}"
+    dotfiles_dir: "{{ home_dir }}/dotfiles"
 
-  tasks:
+  block:
+    - name: Remove conflicting files
+      file:
+        path: "{{ home_dir }}/.config/{{ item }}"
+        state: absent
+      loop:
+        - starship.toml
+        - zsh-autocomplete
+        - zsh-autosuggestions
+        - zsh-syntax-highlighting
+        - nvim
+        - tmux
+        - hyprland
+        - rofi
+        - waybar
+        - ghostty
+
+    - name: Remove conflicting files
+      file:
+        path: "{{ home_dir }}/{{ item }}"
+        state: absent
+      loop:
+        - .tmux.conf
+        - starship.toml
+        - tmux.conf
+        - .zshrc
+        - .tmux
+
+    - name: ensure .zshrc-specific exists
+      copy:
+        content: ""
+        dest: "{{ home_dir }}/.zshrc-specific"
+        force: false
+
     # CONFIGURE ZSH
     - name: Install Starship
+      become: true
       shell: curl -sS https://starship.rs/install.sh | sh -s -- -y
 
     - name: Configure dotfiles with stow
-      shell: stow -vv --target="{{ home_dir }}" zshrc
+      become: true
+      shell: stow --target="{{ home_dir }}" zshrc 
       args:
         chdir: "{{ dotfiles_dir }}"
 
@@ -22,18 +54,46 @@
         line: "exec zsh"
         create: yes
 
-
 # CONFIGURE nvim
     - name: Configure nvim
+      become: true
       shell: |
-        stow --target={{ home_dir }} nvim 
+        stow --target={{ home_dir }} nvim
+      args:
+        chdir: "{{ dotfiles_dir }}"
+
+# CONFIGURE hyprland
+    - name: Configure hyprland
+      become: true
+      shell: |
+        stow --target={{ home_dir }} hyprland
+      args:
+        chdir: "{{ dotfiles_dir }}"
+
+# CONFIGURE ghostty
+    - name: Configure ghostty
+      become: true
+      shell: |
+        stow --target={{ home_dir }} ghostty
       args:
         chdir: "{{ dotfiles_dir }}"
 
 #CONFIGURE tmux
     - name: Configure tmux
+      become: true
       shell: |
-        stow --v --target={{ home_dir }} tmux
-        {{ home_dir }}/.tmux/plugins/tpm/bin/install_plugins
+        stow --target={{ home_dir }} tmux
       args:
         chdir: "{{ dotfiles_dir }}"
+
+    - name: Ensure tmux session is running
+      command: tmux new-session -d -s mysession
+      ignore_errors: yes 
+
+    - name: Source .tmux.conf to reload tmux configuration
+      shell: "tmux source-file {{ home_dir }}/.tmux.conf"
+      when: ansible_facts['tmux']['session']['mysession'] is defined
+
+    - name: Install tmux plugins using TPM
+      shell: "{{ home_dir }}/.tmux/plugins/tpm/bin/install_plugins"
+      when: ansible_facts['tmux']['session']['mysession'] is defined

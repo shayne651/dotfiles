@@ -1,8 +1,5 @@
 - name: Install dependencies
-  hosts: localhost
-  gather_facts: yes
-  become: yes
-  tasks:
+  block:
 
     # INSTALL GIT
     - name: Install git on mac
@@ -13,10 +10,19 @@
 
     - name: Install git on ubuntu
       when: ansible_facts['os_family'] == "Debian"
+      become: yes
       apt:
         name: git
         state: present
         update_cache: yes
+
+    - name: Install git on Arch
+      when: ansible_facts['os_family'] == "Archlinux"
+      become: yes
+      pacman:
+          name: git
+          state: present
+          update_cache: yes
 
     # INSTALL STOW
     - name: Install stow on mac
@@ -27,9 +33,17 @@
 
     - name: Install stow on ubuntu
       when: ansible_facts['os_family'] == "Debian" 
+      become: yes
       apt:
         name: stow
         state: present
+
+    - name: Install stow on Arch
+      when: ansible_facts['os_family'] == "Archlinux"
+      become: yes
+      pacman:
+          name: stow
+          state: present
 
     # INSTALL NVIM
     - name: Install nvim on mac
@@ -40,9 +54,17 @@
 
     - name: Install nvim on ubuntu
       when: ansible_facts['os_family'] == "Debian"
+      become: yes
       snap:
         name: nvim
         classic: yes 
+
+    - name: Install nvim on Arch
+      when: ansible_facts['os_family'] == "Archlinux"
+      become: yes
+      pacman:
+          name: nvim
+          state: present
 
     # INSTALL TMUX
     - name: Install tmux on mac
@@ -53,13 +75,22 @@
 
     - name: Install tmux on ubuntu
       when: ansible_facts['os_family'] == "Debian"
+      become: yes
       apt:
         name: tmux
         state: present
 
+    - name: Install tmux on Arch
+      when: ansible_facts['os_family'] == "Archlinux"
+      become: yes
+      pacman:
+          name: tmux
+          state: present
+
     # INSTALL ZSH
     - name: Install zsh if not mac
-      when: ansible_facts['os_family'] != "Darwin"
+      when: ansible_facts['os_family'] == "Debian"
+      become: yes
       block:
         - name: Install zsh
           apt:
@@ -77,6 +108,27 @@
             shell: /usr/bin/zsh
           when: current_shell.stdout != "/usr/bin/zsh"
 
+    - name: Install stow on Arch
+      when: ansible_facts['os_family'] == "Archlinux"
+      become: yes
+      block:
+        - name: Install zsh
+          pacman:
+              name: zsh
+              state: present
+
+        - name: Get current shell
+          command: echo $SHELL
+          register: current_shell
+          changed_when: false
+
+        - name: Set shell
+          user: 
+            name: "{{ ansible_env.USER }}"
+            shell: /usr/bin/zsh
+          when: current_shell.stdout != "/usr/bin/zsh"
+              
+
     # INSTALL rbenv
     - name: Install rbenv on mac
       when: ansible_facts['os_family'] == "Darwin"
@@ -89,3 +141,73 @@
       apt:
         name: rbenv
         state: present
+
+    - name: Install rbenv on Arch
+      when: ansible_facts['os_family'] == "Archlinux"
+      become: yes
+      pacman:
+          name: rbenv
+          state: present
+
+# INSTALL Python/pip
+
+    - name: Install pip on Arch
+      when: ansible_facts['os_family'] == "Archlinux"
+      become: yes
+      block: 
+        - name: Install pipx
+          pacman:
+            name: python-pipx
+            state: present
+        - name: Ensure esptool is installed via pipx
+          command: pipx install esptool
+          args:
+            creates: /home/{{ ansible_user_id }}/.local/bin/esptool.py
+        - name: Ensure mpremote is installed via pipx
+          command: pipx install mpremote
+          args:
+            creates: /home/{{ ansible_user_id }}/.local/bin/mpremote.py
+
+    # INSTALL esp32tool
+    - name: Install esp32tool
+      when: ansible_facts['os_family'] != "Archlinux"
+      become: yes
+      pip:
+        name: esptool
+
+    # DOWNLOAD esp32 wroom firmware
+    - name: Download esp32 wroom firmware
+      get_url:
+        url: https://micropython.org/resources/firmware/ESP32_GENERIC-20241129-v1.24.1.bin
+        dest: ~/.config/esp32wroom_firmware.bin
+
+    # INSTALL mpremote (pushing files to esp32)
+    - name: Install mpremote
+      when: ansible_facts['os_family'] != "Archlinux"
+      pip: 
+        name: mpremote
+
+    # INSTALL UNZIP
+    - name: Install unzip on mac
+      when: ansible_facts['os_family'] == "Darwin"
+      homebrew:
+        package: unzip
+        state: present
+
+    - name: Install unzip on ubuntu
+      when: ansible_facts['os_family'] == "Debian"
+      become: yes
+      apt:
+        name: unzip
+        state: present
+        update_cache: yes
+
+    - name: Install unzip on Arch
+      when: ansible_facts['os_family'] == "Archlinux"
+      become: yes
+      pacman:
+          name: unzip
+          state: present
+          update_cache: yes
+
+

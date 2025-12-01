@@ -1,4 +1,11 @@
 ---
-- import_playbook: install_mac_dependencies.yml
-- import_playbook: install_dependencies.yml
-- import_playbook: install_dotfiles.yml
+- name: Setup system
+  hosts: localhost
+  gather_facts: yes
+
+  tasks:
+    - import_tasks: install_mac_dependencies.yml
+    - import_tasks: install_dependencies.yml
+    - import_tasks: install_common.yml
+    - import_tasks: configure_ubuntu_desktop.yml
+    - import_tasks: install_dotfiles.yml

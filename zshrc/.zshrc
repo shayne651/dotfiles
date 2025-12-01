@@ -11,14 +11,7 @@ source ~/.config/zsh-autocomplete/zsh-autocomplete.plugin.zsh
 export PATH="$PATH:$HOME/.rbenv/bin:$PATH"
 eval "$(rbenv init -)"
 
-# Reefmonitor env
-export LOCAL_DEV=true
-export GOOGLE_APPLICATION_CREDENTIALS="$HOME/.config/reefmonitor.json"
-
-# ESPTOOL auto complete
-export PATH="$PATH:/Users/shaynetaylor/Library/Python/3.9/bin"
-
-
-alias python="python3"
-alias py="python3"
-export PATH="/opt/homebrew/opt/openjdk/bin:$PATH"
+# Load user specific zshrc
+if [[ -f "$HOME/.zshrc-specific" ]]; then
+  source "$HOME/.zshrc-specific"
+fi
