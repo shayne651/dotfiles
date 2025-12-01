@@ -15,3 +15,12 @@ eval "$(rbenv init -)"
 if [[ -f "$HOME/.zshrc-specific" ]]; then
   source "$HOME/.zshrc-specific"
 fi
+
+# History settings
+export HISTFILE=~/.zsh_history
+export HISTSIZE=1000
+export SAVEHIST=1000
+setopt appendhistory
+setopt extendedhistory
+
+
