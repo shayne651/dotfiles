@@ -186,3 +186,28 @@
       when: ansible_facts['os_family'] != "Archlinux"
       pip: 
         name: mpremote
+
+    # INSTALL UNZIP
+    - name: Install unzip on mac
+      when: ansible_facts['os_family'] == "Darwin"
+      homebrew:
+        package: unzip
+        state: present
+
+    - name: Install unzip on ubuntu
+      when: ansible_facts['os_family'] == "Debian"
+      become: yes
+      apt:
+        name: unzip
+        state: present
+        update_cache: yes
+
+    - name: Install unzip on Arch
+      when: ansible_facts['os_family'] == "Archlinux"
+      become: yes
+      pacman:
+          name: unzip
+          state: present
+          update_cache: yes
+
+

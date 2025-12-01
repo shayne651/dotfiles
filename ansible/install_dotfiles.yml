@@ -18,6 +18,7 @@
         - hyprland
         - rofi
         - waybar
+        - ghostty
 
     - name: Remove conflicting files
       file:
@@ -66,6 +67,14 @@
       become: true
       shell: |
         stow --target={{ home_dir }} hyprland
+      args:
+        chdir: "{{ dotfiles_dir }}"
+
+# CONFIGURE ghostty
+    - name: Configure ghostty
+      become: true
+      shell: |
+        stow --target={{ home_dir }} ghostty
       args:
         chdir: "{{ dotfiles_dir }}"
 

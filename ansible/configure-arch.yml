@@ -1,0 +1,17 @@
+- name: Configure Arch 
+  when: ansible_facts['os_family'] == "Archlinux"
+  block: 
+  - name: Install hyprland
+      become: yes
+      pacman:
+          name: hyprland
+          state: present
+
+  - name: Install stow on Arch
+      when: ansible_facts['os_family'] == "Archlinux"
+      become: yes
+      pacman:
+          name: stow
+          state: present
+
+
