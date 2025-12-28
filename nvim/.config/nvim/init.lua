@@ -60,3 +60,6 @@ vim.api.nvim_create_autocmd("BufWritePre", {
   end,
 })
 
+-- setup whichkey
+local whichKey = require('which-key')
+vim.keymap.set('n', '<leader>?', whichKey.show, {desc = "which keys"})
