@@ -138,6 +138,7 @@
 
     - name: Install rbenv on ubuntu
       when: ansible_facts['os_family'] == "Debian"
+      become: yes
       apt:
         name: rbenv
         state: present
@@ -167,25 +168,6 @@
           command: pipx install mpremote
           args:
             creates: /home/{{ ansible_user_id }}/.local/bin/mpremote.py
-
-    # INSTALL esp32tool
-    - name: Install esp32tool
-      when: ansible_facts['os_family'] != "Archlinux"
-      become: yes
-      pip:
-        name: esptool
-
-    # DOWNLOAD esp32 wroom firmware
-    - name: Download esp32 wroom firmware
-      get_url:
-        url: https://micropython.org/resources/firmware/ESP32_GENERIC-20241129-v1.24.1.bin
-        dest: ~/.config/esp32wroom_firmware.bin
-
-    # INSTALL mpremote (pushing files to esp32)
-    - name: Install mpremote
-      when: ansible_facts['os_family'] != "Archlinux"
-      pip: 
-        name: mpremote
 
     # INSTALL UNZIP
     - name: Install unzip on mac
