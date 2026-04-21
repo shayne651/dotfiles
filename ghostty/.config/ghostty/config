@@ -41,5 +41,8 @@
 # # which is explained in the docs for that config option.
 # # Just for example:
 # resize-overlay-duration = 4s 200ms
-background-opacity = 0.7
+background-opacity = 0.50
 theme = TokyoNight Storm
+
+# Unbind alt+space so tmux can use it as the prefix key
+keybind = alt+space=unbind

@@ -27,6 +27,41 @@
       state: present
       update_cache: yes
 
+# INSTALLING awww
+  - name: Install awww
+    when: ubuntu_type == "desktop"
+    become: yes
+    apt:
+      name: awww
+      state: present
+      update_cache: yes
+
+# INSTALLING hypridle
+  - name: Install hypridle
+    when: ubuntu_type == "desktop"
+    become: yes
+    apt:
+      name: hypridle
+      state: present
+      update_cache: yes
+
+# INSTALLING sddm (display manager with login screen)
+  - name: Install sddm on ubuntu desktop
+    when: ubuntu_type == "desktop"
+    become: yes
+    apt:
+      name: sddm
+      state: present
+      update_cache: yes
+
+  - name: Enable and start SDDM on ubuntu desktop
+    when: ubuntu_type == "desktop"
+    become: yes
+    ansible.builtin.systemd:
+      name: sddm
+      enabled: yes
+      state: started
+
 # INSTALLING ghostty
   - name: Installing ghostty
     when: ubuntu_type == "desktop"
@@ -34,9 +69,8 @@
       name: ghostty
       classic: yes
 
-# INSTALLING bruno
-  - name: Install bruno on ubuntu
+# INSTALLING postman
+  - name: Install postman on ubuntu
     when: ubuntu_type == "desktop"
     snap:
-      name: bruno
-      classic: yes
+      name: postman

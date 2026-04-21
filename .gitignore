@@ -4,3 +4,5 @@ tmux/.tmux/plugins/tmux-sensible/
 nvim/.config/nvim/lazy-lock.json
 
 zshrc/.zshrc-specific
+*.jgp
+*.tif

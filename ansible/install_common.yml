@@ -1,12 +1,86 @@
 - name: Installing commonly used
+  vars:
+    arch_packages:
+      - docker
+      - docker-compose
+      - go
+      - ghostty
+      - gitui
+      - imagemagick
+      - luarocks
+      - uwsm
+      - chafa
+      # NVIDIA drivers (open-source kernel module + utilities)
+      - nvidia-open-dkms
+      - nvidia-utils
+      - lib32-nvidia-utils
+      - nvidia-settings
+      - linux-firmware-nvidia
+      # Kernel headers required by DKMS to build nvidia-open-dkms
+      - linux-headers
+      - linux-lts-headers
+    mac_homebrew_packages:
+      - docker
+      - go
+      - gitui
+      - imagemagick
+      - luarocks
+    mac_cask_packages:
+      - postman
+      - ghostty
+
   block:
 
-# INSTALLING docker
-  - name: Install docker on mac
+  # ARCH LINUX - bulk install
+  - name: Install packages on Arch Linux
+    when: ansible_facts['os_family'] == "Archlinux"
+    become: yes
+    pacman:
+      name: "{{ arch_packages }}"
+      state: present
+
+  # ARCH LINUX - autologin setup (hyprlock runs on first Hyprland start)
+  - name: Disable SDDM on Arch if present
+    when: ansible_facts['os_family'] == "Archlinux"
+    become: yes
+    ansible.builtin.systemd:
+      name: sddm
+      enabled: no
+      state: stopped
+    ignore_errors: yes
+
+  - name: Create getty autologin override directory on Arch
+    when: ansible_facts['os_family'] == "Archlinux"
+    become: yes
+    ansible.builtin.file:
+      path: /etc/systemd/system/getty@tty1.service.d
+      state: directory
+      mode: '0755'
+
+  - name: Configure getty autologin on Arch
+    when: ansible_facts['os_family'] == "Archlinux"
+    become: yes
+    ansible.builtin.copy:
+      dest: /etc/systemd/system/getty@tty1.service.d/override.conf
+      content: |
+        [Service]
+        ExecStart=
+        ExecStart=-/sbin/agetty --autologin shayne --noclear %I $TERM
+
+  # MACOS - bulk install
+  - name: Install homebrew packages on macOS
     when: ansible_facts['os_family'] == "Darwin"
     homebrew:
-      package: docker
+      name: "{{ mac_homebrew_packages }}"
       state: present
+
+  - name: Install homebrew cask packages on macOS
+    when: ansible_facts['os_family'] == "Darwin"
+    homebrew_cask:
+      name: "{{ mac_cask_packages }}"
+      state: present
+
+  # DEBIAN - per-package (each has a unique install method)
 
   - name: Install docker on ubuntu
     when: ansible_facts['os_family'] == "Debian"
@@ -55,27 +129,6 @@
             - docker-compose-plugin
           state: present
 
-  - name: Install docker on Arch
-    when: ansible_facts['os_family'] == "Archlinux"
-    become: yes
-    pacman:
-        name: docker
-        state: present
-
-  - name: Install docker compose packages
-    when: ansible_facts['os_family'] == "Archlinux"
-    become: yes
-    pacman:
-        name: docker-compose
-        state: present
-
-# INSTALLING go
-  - name: Install go on mac
-    when: ansible_facts['os_family'] == "Darwin"
-    homebrew:
-      package: go
-      state: present
-
   - name: Install go on ubuntu
     when: ansible_facts['os_family'] == "Debian"
     become: yes
@@ -83,81 +136,56 @@
       name: go
       classic: yes
 
-  - name: Install go on Arch
-    when: ansible_facts['os_family'] == "Archlinux"
-    become: yes
-    pacman:
-        name: go
-        state: present
-
-# INSTALLING bruno
-  - name: Install bruno on mac
-    when: ansible_facts['os_family'] == "Darwin"
-    homebrew_cask:
-      package: bruno
-      state: present
-
-  - name: Install Bruno API client on Arch Linux
-    when: ansible_facts['os_family'] == "Archlinux"
-    become: true
-    block:
-      - name: Ensure dependencies are installed
-        pacman:
-          name: base-devel
-          state: present
-
-      - name: Download Bruno AppImage
-        get_url:
-          url: https://github.com/usebruno/bruno/releases/download/v2.5.0/bruno_2.5.0_arm64_linux.AppImage
-          dest: /usr/local/bin/bruno
-          mode: '0755'
-
-      - name: Create a desktop entry for Bruno (optional)
-        copy:
-          dest: /usr/share/applications/bruno.desktop
-          content: |
-            [Desktop Entry]
-            Name=Bruno
-            Exec=/usr/local/bin/bruno
-            Icon=bruno
-            Type=Application
-            Categories=Development;
-          mode: '0644'
-
-# INSTALLING ghosty (mac only)
-  - name: Install ghostty on mac
-    when: ansible_facts['os_family'] == "Darwin"
-    homebrew_cask:
-      package: ghostty
-      state: present
-
-  - name: Install ghostty on Arch
-    when: ansible_facts['os_family'] == "Archlinux"
-    become: yes
-    pacman:
-        name: ghostty
-        state: present
-
-# INSTALLING gitui
-  - name: Install gitui on mac
-    when: ansible_facts['os_family'] == "Darwin"
-    homebrew:
-      package: gitui
-      state: present
-
   - name: Install gitui on ubuntu
     when: ansible_facts['os_family'] == "Debian"
     become: yes
     shell: |
-      curl -s curl -s https://api.github.com/repos/extrawurst/gitui/releases/latest | grep -wo "https.*linux.*gz" | wget -qi -
+      curl -s https://api.github.com/repos/extrawurst/gitui/releases/latest | grep -wo "https.*linux.*gz" | wget -qi -
       tar xzvf gitui-linux-musl.tar.gz
       rm gitui-linux-musl.tar.gz
-      sudo chmod +x gitui
-      sudo mv gitui /usr/local/bin
+      chmod +x gitui
+      mv gitui /usr/local/bin
 
-  - name: Install gitui on Arch
+  # POSTMAN on Arch (AUR)
+  - name: Install Postman on Arch Linux
+    when: ansible_facts['os_family'] == "Archlinux"
+    become: true
+    become_user: "{{ ansible_env.SUDO_USER | default(ansible_env.USER) }}"
+    shell: pacman -Qq postman-bin 2>/dev/null || yay -S --noconfirm postman-bin
+    changed_when: false
+
+  # IMAGEMAGICK + LUAROCKS (neovim image preview)
+  - name: Install imagemagick and luarocks on Debian
+    when: ansible_facts['os_family'] == "Debian"
+    become: yes
+    apt:
+      name:
+        - imagemagick
+        - luarocks
+      state: present
+      update_cache: yes
+
+
+  # AWWW (AUR - Arch only; Ubuntu handled in configure_ubuntu_desktop.yml)
+  - name: Install awww via yay on Arch Linux
+    when: ansible_facts['os_family'] == "Archlinux"
+    become: true
+    become_user: "{{ ansible_env.SUDO_USER | default(ansible_env.USER) }}"
+    environment:
+      HOME: "/home/{{ ansible_env.SUDO_USER | default(ansible_env.USER) }}"
+    shell: pacman -Qq awww 2>/dev/null || yay -S --noconfirm --sudoflags "-n" awww
+    changed_when: false
+
+  # HYPRIDLE (Arch official repos; Ubuntu handled in configure_ubuntu_desktop.yml)
+  - name: Install hypridle on Arch Linux
     when: ansible_facts['os_family'] == "Archlinux"
     become: yes
     pacman:
-        name: gitui
-        state: present
+      name: hypridle
+      state: present
+
+  # CLAUDE CODE (all platforms)
+  - name: Install Claude Code
+    shell: curl -fsSL https://claude.ai/install.sh | bash
+    args:
+      creates: "/home/{{ ansible_env.SUDO_USER | default(ansible_env.USER) }}/.claude/local/claude"

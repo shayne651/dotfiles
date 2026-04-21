@@ -149,44 +149,6 @@
           name: rbenv
           state: present
 
-# INSTALL Python/pip
-
-    - name: Install pip on Arch
-      when: ansible_facts['os_family'] == "Archlinux"
-      become: yes
-      block: 
-        - name: Install pipx
-          pacman:
-            name: python-pipx
-            state: present
-        - name: Ensure esptool is installed via pipx
-          command: pipx install esptool
-          args:
-            creates: /home/{{ ansible_user_id }}/.local/bin/esptool.py
-        - name: Ensure mpremote is installed via pipx
-          command: pipx install mpremote
-          args:
-            creates: /home/{{ ansible_user_id }}/.local/bin/mpremote.py
-
-    # INSTALL esp32tool
-    - name: Install esp32tool
-      when: ansible_facts['os_family'] != "Archlinux"
-      become: yes
-      pip:
-        name: esptool
-
-    # DOWNLOAD esp32 wroom firmware
-    - name: Download esp32 wroom firmware
-      get_url:
-        url: https://micropython.org/resources/firmware/ESP32_GENERIC-20241129-v1.24.1.bin
-        dest: ~/.config/esp32wroom_firmware.bin
-
-    # INSTALL mpremote (pushing files to esp32)
-    - name: Install mpremote
-      when: ansible_facts['os_family'] != "Archlinux"
-      pip: 
-        name: mpremote
-
     # INSTALL UNZIP
     - name: Install unzip on mac
       when: ansible_facts['os_family'] == "Darwin"

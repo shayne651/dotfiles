@@ -1,6 +1,6 @@
 - name: Install dotfiles
   vars:
-    home_dir: "{{ lookup('env', 'HOME') }}"
+    home_dir: "{% if ansible_facts['os_family'] == 'Darwin' %}/Users/{{ ansible_user }}{% else %}/home/{{ ansible_user }}{% endif %}"
     dotfiles_dir: "{{ home_dir }}/dotfiles"
 
   block:
@@ -29,6 +29,7 @@
         - starship.toml
         - tmux.conf
         - .zshrc
+        - .zprofile
         - .tmux
 
     - name: ensure .zshrc-specific exists
@@ -43,8 +44,7 @@
       shell: curl -sS https://starship.rs/install.sh | sh -s -- -y
 
     - name: Configure dotfiles with stow
-      become: true
-      shell: stow --target="{{ home_dir }}" zshrc 
+      shell: stow --target="{{ home_dir }}" zshrc
       args:
         chdir: "{{ dotfiles_dir }}"
 
@@ -56,7 +56,6 @@
 
 # CONFIGURE nvim
     - name: Configure nvim
-      become: true
       shell: |
         stow --target={{ home_dir }} nvim
       args:
@@ -64,15 +63,32 @@
 
 # CONFIGURE hyprland
     - name: Configure hyprland
-      become: true
       shell: |
         stow --target={{ home_dir }} hyprland
       args:
         chdir: "{{ dotfiles_dir }}"
 
+# DOWNLOAD NASA wallpapers
+    - name: Create wallpaper venv
+      when: ansible_facts['os_family'] == "Archlinux"
+      command: python3 -m venv {{ home_dir }}/.config/background_photos/photo.env
+      args:
+        creates: "{{ home_dir }}/.config/background_photos/photo.env"
+
+    - name: Install wallpaper venv dependencies
+      when: ansible_facts['os_family'] == "Archlinux"
+      pip:
+        requirements: "{{ home_dir }}/.config/background_photos/requirements.txt"
+        virtualenv: "{{ home_dir }}/.config/background_photos/photo.env"
+
+    - name: Download NASA wallpapers
+      when: ansible_facts['os_family'] == "Archlinux"
+      command: "{{ home_dir }}/.config/background_photos/photo.env/bin/python {{ home_dir }}/.config/background_photos/getPhotos.py --limit 50"
+      args:
+        chdir: "{{ home_dir }}/.config/background_photos"
+
 # CONFIGURE ghostty
     - name: Configure ghostty
-      become: true
       shell: |
         stow --target={{ home_dir }} ghostty
       args:
@@ -80,15 +96,14 @@
 
 #CONFIGURE tmux
     - name: Configure tmux
-      become: true
       shell: |
         stow --target={{ home_dir }} tmux
       args:
         chdir: "{{ dotfiles_dir }}"
 
     - name: Ensure tmux session is running
-      command: tmux new-session -d -s mysession
-      ignore_errors: yes 
+      shell: tmux has-session -t mysession 2>/dev/null || tmux new-session -d -s mysession
+      changed_when: false
 
     - name: Source .tmux.conf to reload tmux configuration
       shell: "tmux source-file {{ home_dir }}/.tmux.conf"
