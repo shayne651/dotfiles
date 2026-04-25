@@ -41,8 +41,13 @@
 # # which is explained in the docs for that config option.
 # # Just for example:
 # resize-overlay-duration = 4s 200ms
-background-opacity = 0.50
 theme = TokyoNight Storm
+
+# Platform-specific overrides (opacity, etc.) are set by Ansible in config.local
+config-file = ~/.config/ghostty/config.local
 
 # Unbind alt+space so tmux can use it as the prefix key
 keybind = alt+space=unbind
+
+# macOS: make Option behave like Alt so tmux M- bindings work
+macos-option-as-alt = true

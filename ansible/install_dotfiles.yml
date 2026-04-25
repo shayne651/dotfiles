@@ -39,8 +39,8 @@
         force: false
 
     # CONFIGURE ZSH
-    - name: Install Starship
-      become: true
+    - name: Install Starship (Debian only — other platforms use package manager)
+      when: ansible_facts['os_family'] == "Debian"
       shell: curl -sS https://starship.rs/install.sh | sh -s -- -y
 
     - name: Configure dotfiles with stow
@@ -93,6 +93,11 @@
         stow --target={{ home_dir }} ghostty
       args:
         chdir: "{{ dotfiles_dir }}"
+
+    - name: Write ghostty local config (platform-specific opacity)
+      copy:
+        content: "background-opacity = {{ '0.8' if ansible_facts['os_family'] == 'Darwin' else '0.5' }}\n"
+        dest: "{{ home_dir }}/.config/ghostty/config.local"
 
 #CONFIGURE tmux
     - name: Configure tmux

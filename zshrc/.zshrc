@@ -1,3 +1,7 @@
+export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$HOME/.local/bin:$PATH"
+
+[[ -z "$TMUX" ]] && command -v fastfetch &>/dev/null && fastfetch
+
 eval "$(starship init zsh)"
 
 bindkey '^[[Z' reverse-menu-complete
@@ -11,7 +15,7 @@ source ~/.config/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 source ~/.config/zsh-autocomplete/zsh-autocomplete.plugin.zsh
 
 # Add RVM to PATH for scripting. Make sure this is the last PATH variable change.
-export PATH="$PATH:$HOME/.rbenv/bin:$PATH"
+export PATH="$HOME/.rbenv/bin:$PATH"
 eval "$(rbenv init -)"
 
 # Load user specific zshrc

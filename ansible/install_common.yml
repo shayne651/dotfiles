@@ -3,11 +3,13 @@
     arch_packages:
       - docker
       - docker-compose
+      - fastfetch
       - go
       - ghostty
       - gitui
       - imagemagick
       - luarocks
+      - starship
       - uwsm
       - chafa
       # NVIDIA drivers (open-source kernel module + utilities)
@@ -21,10 +23,12 @@
       - linux-lts-headers
     mac_homebrew_packages:
       - docker
+      - fastfetch
       - go
       - gitui
       - imagemagick
       - luarocks
+      - starship
     mac_cask_packages:
       - postman
       - ghostty
@@ -153,6 +157,15 @@
     become_user: "{{ ansible_env.SUDO_USER | default(ansible_env.USER) }}"
     shell: pacman -Qq postman-bin 2>/dev/null || yay -S --noconfirm postman-bin
     changed_when: false
+
+  # FASTFETCH (system info on terminal startup)
+  - name: Install fastfetch on Debian
+    when: ansible_facts['os_family'] == "Debian"
+    become: yes
+    apt:
+      name: fastfetch
+      state: present
+      update_cache: yes
 
   # IMAGEMAGICK + LUAROCKS (neovim image preview)
   - name: Install imagemagick and luarocks on Debian

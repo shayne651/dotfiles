@@ -50,6 +50,13 @@ format = "[](fg:#7a7a7a bg:#444444)[ $state $symbol ]($style)"
 style = "fg:#5690ad bg:#444444"
 symbol = "❄️"
 
+[python]
+format = "[](fg:#7a7a7a bg:#444444)[ $virtualenv ]($style)"
+style = "fg:#ffcc00 bg:#444444"
+detect_files = []
+detect_extensions = []
+detect_folders = []
+
 [status]
 disabled = false
 format = "[ $signal_name $symbol ]($style)"
