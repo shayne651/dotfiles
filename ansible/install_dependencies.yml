@@ -1,29 +1,6 @@
 - name: Install dependencies
   block:
 
-    # INSTALL GIT
-    - name: Install git on mac
-      when: ansible_facts['os_family'] == "Darwin"
-      homebrew:
-        package: git
-        state: present
-
-    - name: Install git on ubuntu
-      when: ansible_facts['os_family'] == "Debian"
-      become: yes
-      apt:
-        name: git
-        state: present
-        update_cache: yes
-
-    - name: Install git on Arch
-      when: ansible_facts['os_family'] == "Archlinux"
-      become: yes
-      pacman:
-          name: git
-          state: present
-          update_cache: yes
-
     # INSTALL STOW
     - name: Install stow on mac
       when: ansible_facts['os_family'] == "Darwin"

@@ -5,6 +5,7 @@
 
   block:
     - name: Remove conflicting files
+      become: true
       file:
         path: "{{ home_dir }}/.config/{{ item }}"
         state: absent
@@ -21,6 +22,7 @@
         - ghostty
 
     - name: Remove conflicting files
+      become: true
       file:
         path: "{{ home_dir }}/{{ item }}"
         state: absent
@@ -32,7 +34,17 @@
         - .zprofile
         - .tmux
 
+    - name: Ensure .config directory exists and is owned by user
+      become: true
+      file:
+        path: "{{ home_dir }}/.config"
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: "0755"
+
     - name: ensure .zshrc-specific exists
+      become: true
       copy:
         content: ""
         dest: "{{ home_dir }}/.zshrc-specific"
@@ -41,14 +53,17 @@
     # CONFIGURE ZSH
     - name: Install Starship (Debian only — other platforms use package manager)
       when: ansible_facts['os_family'] == "Debian"
+      become: true
       shell: curl -sS https://starship.rs/install.sh | sh -s -- -y
 
     - name: Configure dotfiles with stow
+      become: true
       shell: stow --target="{{ home_dir }}" zshrc
       args:
         chdir: "{{ dotfiles_dir }}"
 
     - name: Ensure Zsh is the default shell
+      become: true
       lineinfile:
         path: "{{ home_dir }}/.bashrc"
         line: "exec zsh"
@@ -56,6 +71,7 @@
 
 # CONFIGURE nvim
     - name: Configure nvim
+      become: true
       shell: |
         stow --target={{ home_dir }} nvim
       args:
@@ -63,6 +79,8 @@
 
 # CONFIGURE hyprland
     - name: Configure hyprland
+      become: true
+      when: ansible_facts['os_family'] == "Archlinux"
       shell: |
         stow --target={{ home_dir }} hyprland
       args:
@@ -89,18 +107,21 @@
 
 # CONFIGURE ghostty
     - name: Configure ghostty
+      become: true
       shell: |
         stow --target={{ home_dir }} ghostty
       args:
         chdir: "{{ dotfiles_dir }}"
 
     - name: Write ghostty local config (platform-specific opacity)
+      become: true
       copy:
         content: "background-opacity = {{ '0.8' if ansible_facts['os_family'] == 'Darwin' else '0.5' }}\n"
         dest: "{{ home_dir }}/.config/ghostty/config.local"
 
 #CONFIGURE tmux
     - name: Configure tmux
+      become: true
       shell: |
         stow --target={{ home_dir }} tmux
       args:
@@ -117,3 +138,12 @@
     - name: Install tmux plugins using TPM
       shell: "{{ home_dir }}/.tmux/plugins/tpm/bin/install_plugins"
       when: ansible_facts['tmux']['session']['mysession'] is defined
+
+    - name: Fix .config directory ownership after stow
+      become: true
+      file:
+        path: "{{ home_dir }}/.config"
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: "0755"

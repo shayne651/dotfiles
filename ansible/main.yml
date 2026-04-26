@@ -4,6 +4,11 @@
   gather_facts: yes
 
   tasks:
+#    - name: Validate become password
+#      command: true
+#      become: yes
+#      changed_when: false
+
     - import_tasks: install_mac_dependencies.yml
     - import_tasks: install_dependencies.yml
     - import_tasks: install_common.yml
