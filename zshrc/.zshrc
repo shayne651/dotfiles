@@ -1,5 +1,9 @@
 export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$HOME/.local/bin:$HOME/.local/bin:$PATH"
 
+# Raise the per-process open-file limit; macOS default (256) is too low
+# when running zsh plugins + tmux with multiple panes
+ulimit -n 65536
+
 [[ -z "$TMUX" ]] && command -v fastfetch &>/dev/null && fastfetch
 
 eval "$(starship init zsh)"
@@ -16,8 +20,10 @@ export TERM=xterm-256color
 zstyle ':completion:*' expand prefix suffix
 
 source ~/.config/zsh-autosuggestions/zsh-autosuggestions.zsh
-source ~/.config/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 source ~/.config/zsh-autocomplete/zsh-autocomplete.plugin.zsh
+# zsh-syntax-highlighting must be sourced last — it hooks into ZLE at source time
+# and will break/leak FDs if any plugin loads after it
+source ~/.config/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
 # Add RVM to PATH for scripting. Make sure this is the last PATH variable change.
 export PATH="$HOME/.rbenv/bin:$PATH"

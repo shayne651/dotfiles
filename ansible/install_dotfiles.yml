@@ -34,6 +34,7 @@
         - .zprofile
         - .tmux
 
+<<<<<<< Updated upstream
     - name: Ensure .config directory exists and is owned by user
       become: true
       file:
@@ -45,6 +46,23 @@
 
     - name: ensure .zshrc-specific exists
       become: true
+=======
+    - name: Create .zshrc-specific backup directory
+      file:
+        path: "{{ home_dir }}/.zshrc-specific-backups"
+        state: directory
+        mode: '0700'
+
+    - name: Back up .zshrc-specific if it exists
+      shell: |
+        if [ -f "{{ home_dir }}/.zshrc-specific" ]; then
+          cp "{{ home_dir }}/.zshrc-specific" \
+             "{{ home_dir }}/.zshrc-specific-backups/.zshrc-specific.bak.$(date +%Y%m%d%H%M%S)"
+        fi
+      changed_when: false
+
+    - name: ensure .zshrc-specific exists (never overwrites)
+>>>>>>> Stashed changes
       copy:
         content: ""
         dest: "{{ home_dir }}/.zshrc-specific"
