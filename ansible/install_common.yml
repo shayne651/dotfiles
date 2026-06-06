@@ -12,6 +12,8 @@
       - starship
       - uwsm
       - chafa
+      - blueman
+      - pavucontrol
       # NVIDIA drivers (open-source kernel module + utilities)
       - nvidia-open-dkms
       - nvidia-utils
@@ -168,6 +170,7 @@
 
   # FASTFETCH (system info on terminal startup)
   - name: Add fastfetch ppa
+    when: ansible_facts['os_family'] == "Debian"
     become: true
     ansible.builtin.apt_repository:
       repo: ppa:zhangsongcui3371/fastfetch
@@ -190,6 +193,31 @@
       state: present
       update_cache: yes
 
+
+  # PAVUCONTROL (audio device switcher GUI - desktop only)
+  - name: Install pavucontrol on Debian desktop
+    when: ansible_facts['os_family'] == "Debian" and ubuntu_type == "desktop"
+    become: yes
+    apt:
+      name: pavucontrol
+      state: present
+
+  # BLUETOOTH (Arch only)
+  - name: Enable and start bluetooth service on Arch Linux
+    when: ansible_facts['os_family'] == "Archlinux"
+    become: yes
+    ansible.builtin.systemd:
+      name: bluetooth
+      enabled: yes
+      state: started
+
+  - name: Disable blueman connection/disconnection popup notifications
+    when: ansible_facts['os_family'] == "Archlinux"
+    become: false
+    community.general.dconf:
+      key: /org/blueman/general/plugin-list
+      value: "['!ConnectionNotifier']"
+      state: present
 
   # AWWW (AUR - Arch only; Ubuntu handled in configure_ubuntu_desktop.yml)
   - name: Install awww via yay on Arch Linux

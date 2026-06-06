@@ -4,6 +4,11 @@ export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$HOME/.local/bin:$HOME/.local/
 
 eval "$(starship init zsh)"
 
+# Arch Linux terminals send raw bracketed paste markers that zle doesn't strip
+if [[ "$(uname)" != "Darwin" ]]; then
+  unset zle_bracketed_paste
+fi
+
 bindkey '^[[Z' reverse-menu-complete
 export TERM=xterm-256color
 
