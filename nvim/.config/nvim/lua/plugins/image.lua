@@ -1,6 +1,6 @@
 return {
   "3rd/image.nvim",
-  build = "luarocks install magick",
+  build = "luarocks --local install magick",
   opts = {
     backend = "kitty",
     integrations = {

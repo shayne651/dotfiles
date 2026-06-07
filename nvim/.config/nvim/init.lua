@@ -1,3 +1,11 @@
+-- Allow Neovim to find luarocks packages installed to the user's local tree
+-- (needed for image.nvim's magick rock when luarocks --local is used)
+local home = os.getenv("HOME")
+package.path = home .. "/.luarocks/share/lua/5.4/?.lua;"
+  .. home .. "/.luarocks/share/lua/5.4/?/init.lua;"
+  .. package.path
+package.cpath = home .. "/.luarocks/lib/lua/5.4/?.so;" .. package.cpath
+
 -- converts tabs to spaces
 vim.cmd("set expandtab")
 

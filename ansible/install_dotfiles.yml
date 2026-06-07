@@ -63,6 +63,11 @@
         dest: "{{ home_dir }}/.zshrc-specific"
         force: false
 
+    - name: Initialize git submodules (plugins, tpm, etc.)
+      shell: git submodule update --init --recursive
+      args:
+        chdir: "{{ dotfiles_dir }}"
+
     # CONFIGURE ZSH
     - name: Install Starship (Debian only — other platforms use package manager)
       when: ansible_facts['os_family'] == "Debian"

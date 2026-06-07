@@ -108,6 +108,13 @@
       name: "{{ fedora_packages }}"
       state: present
 
+  # FEDORA - rbenv (not in default repos; use official installer)
+  - name: Install rbenv (Fedora)
+    when: ansible_facts['distribution'] == "Fedora"
+    shell: curl -fsSL https://github.com/rbenv/rbenv-installer/raw/HEAD/bin/rbenv-installer | bash
+    args:
+      creates: "{{ ansible_env.HOME }}/.rbenv/bin/rbenv"
+
   # FEDORA - starship (not in default repos; use COPR)
   - name: Enable starship COPR (Fedora)
     when: ansible_facts['distribution'] == "Fedora"
@@ -197,6 +204,18 @@
             - docker-compose-plugin
           state: present
 
+      - name: Enable and start Docker service (Debian)
+        ansible.builtin.systemd:
+          name: docker
+          enabled: yes
+          state: started
+
+      - name: Add user to docker group (Debian)
+        ansible.builtin.user:
+          name: "{{ ansible_user }}"
+          groups: docker
+          append: yes
+
   # FEDORA - Docker (official repo)
   - name: Install docker (Fedora)
     when: ansible_facts['distribution'] == "Fedora"
@@ -232,6 +251,12 @@
           name: docker
           enabled: yes
           state: started
+
+      - name: Add user to docker group (Fedora)
+        ansible.builtin.user:
+          name: "{{ ansible_user }}"
+          groups: docker
+          append: yes
 
   # DEBIAN - gitui (from GitHub releases; not in apt repos)
   - name: Install gitui (Debian)

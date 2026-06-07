@@ -25,9 +25,10 @@ source ~/.config/zsh-autocomplete/zsh-autocomplete.plugin.zsh
 # and will break/leak FDs if any plugin loads after it
 source ~/.config/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
-# Add RVM to PATH for scripting. Make sure this is the last PATH variable change.
-export PATH="$HOME/.rbenv/bin:$PATH"
-eval "$(rbenv init -)"
+if [[ -d "$HOME/.rbenv" ]]; then
+  export PATH="$HOME/.rbenv/bin:$PATH"
+  eval "$(rbenv init -)"
+fi
 
 # Load user specific zshrc
 if [[ -f "$HOME/.zshrc-specific" ]]; then
