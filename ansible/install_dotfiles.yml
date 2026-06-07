@@ -34,7 +34,6 @@
         - .zprofile
         - .tmux
 
-<<<<<<< Updated upstream
     - name: Ensure .config directory exists and is owned by user
       become: true
       file:
@@ -44,9 +43,6 @@
         group: "{{ ansible_user }}"
         mode: "0755"
 
-    - name: ensure .zshrc-specific exists
-      become: true
-=======
     - name: Create .zshrc-specific backup directory
       file:
         path: "{{ home_dir }}/.zshrc-specific-backups"
@@ -62,7 +58,6 @@
       changed_when: false
 
     - name: ensure .zshrc-specific exists (never overwrites)
->>>>>>> Stashed changes
       copy:
         content: ""
         dest: "{{ home_dir }}/.zshrc-specific"
