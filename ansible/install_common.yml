@@ -1,6 +1,12 @@
-- name: Installing commonly used
+- name: Install packages
   vars:
     arch_packages:
+      - stow
+      - nvim
+      - tmux
+      - zsh
+      - rbenv
+      - unzip
       - docker
       - docker-compose
       - fastfetch
@@ -24,6 +30,11 @@
       - linux-headers
       - linux-lts-headers
     mac_homebrew_packages:
+      - nvim
+      - stow
+      - tmux
+      - rbenv
+      - unzip
       - docker
       - fastfetch
       - go
@@ -34,75 +45,110 @@
     mac_cask_packages:
       - postman
       - ghostty
+    debian_packages:
+      - stow
+      - tmux
+      - zsh
+      - rbenv
+      - unzip
+      - imagemagick
+      - luarocks
+      - chafa
+      - fastfetch
+      - ca-certificates
+      - curl
+      - wget
+    fedora_packages:
+      - stow
+      - neovim
+      - tmux
+      - zsh
+      - unzip
+      - ImageMagick
+      - luarocks
+      - starship
+      - chafa
+      - fastfetch
+      - golang
+      - gitui
+      - curl
+      - wget
 
   block:
 
+  # DEBIAN - add fastfetch PPA before bulk install
+  - name: Add fastfetch PPA (Debian)
+    when: ansible_facts['os_family'] == "Debian"
+    become: yes
+    ansible.builtin.apt_repository:
+      repo: ppa:zhangsongcui3371/fastfetch
+
   # ARCH LINUX - bulk install
-  - name: Install packages on Arch Linux
+  - name: Install packages (Arch Linux)
     when: ansible_facts['os_family'] == "Archlinux"
     become: yes
     pacman:
       name: "{{ arch_packages }}"
       state: present
 
-  # ARCH LINUX - autologin setup (hyprlock runs on first Hyprland start)
-  - name: Disable SDDM on Arch if present
-    when: ansible_facts['os_family'] == "Archlinux"
+  # DEBIAN - bulk install
+  - name: Install packages (Debian)
+    when: ansible_facts['os_family'] == "Debian"
     become: yes
-    ansible.builtin.systemd:
-      name: sddm
-      enabled: no
-      state: stopped
-    ignore_errors: yes
+    apt:
+      name: "{{ debian_packages }}"
+      state: present
+      update_cache: yes
 
-  - name: Create getty autologin override directory on Arch
-    when: ansible_facts['os_family'] == "Archlinux"
+  # FEDORA - bulk install
+  - name: Install packages (Fedora)
+    when: ansible_facts['distribution'] == "Fedora"
     become: yes
-    ansible.builtin.file:
-      path: /etc/systemd/system/getty@tty1.service.d
-      state: directory
-      mode: '0755'
-
-  - name: Configure getty autologin on Arch
-    when: ansible_facts['os_family'] == "Archlinux"
-    become: yes
-    ansible.builtin.copy:
-      dest: /etc/systemd/system/getty@tty1.service.d/override.conf
-      content: |
-        [Service]
-        ExecStart=
-        ExecStart=-/sbin/agetty --autologin shayne --noclear %I $TERM
+    dnf:
+      name: "{{ fedora_packages }}"
+      state: present
 
   # MACOS - bulk install
-  - name: Install homebrew packages on macOS
+  - name: Install homebrew packages (macOS)
     when: ansible_facts['os_family'] == "Darwin"
     homebrew:
       name: "{{ mac_homebrew_packages }}"
       state: present
 
-  - name: Install homebrew cask packages on macOS
+  - name: Install homebrew cask packages (macOS)
     when: ansible_facts['os_family'] == "Darwin"
     homebrew_cask:
       name: "{{ mac_cask_packages }}"
       state: present
 
-  # DEBIAN - per-package (each has a unique install method)
+  # ZSH - set as default shell on all non-Mac systems
+  - name: Set zsh as default shell
+    when: ansible_facts['os_family'] != "Darwin"
+    become: yes
+    user:
+      name: "{{ ansible_env.USER }}"
+      shell: /usr/bin/zsh
 
-  - name: Install docker on ubuntu
+  # DEBIAN - snap installs (nvim, go — Ubuntu keeps snap; Fedora uses dnf)
+  - name: Install nvim via snap (Debian)
+    when: ansible_facts['os_family'] == "Debian"
+    become: yes
+    snap:
+      name: nvim
+      classic: yes
+
+  - name: Install go via snap (Debian)
+    when: ansible_facts['os_family'] == "Debian"
+    become: yes
+    snap:
+      name: go
+      classic: yes
+
+  # DEBIAN - Docker (official repo)
+  - name: Install docker (Debian)
     when: ansible_facts['os_family'] == "Debian"
     become: yes
     block:
-      - name: Update apt package index
-        apt:
-          update_cache: yes
-
-      - name: Install dependencies
-        apt:
-          name:
-            - ca-certificates
-            - curl
-          state: present
-
       - name: Create apt keyrings directory
         file:
           path: /etc/apt/keyrings
@@ -136,14 +182,44 @@
             - docker-compose-plugin
           state: present
 
-  - name: Install go on ubuntu
-    when: ansible_facts['os_family'] == "Debian"
+  # FEDORA - Docker (official repo)
+  - name: Install docker (Fedora)
+    when: ansible_facts['distribution'] == "Fedora"
     become: yes
-    snap:
-      name: go
-      classic: yes
+    block:
+      - name: Add Docker GPG key
+        get_url:
+          url: https://download.docker.com/linux/fedora/gpg
+          dest: /etc/pki/rpm-gpg/docker-ce.asc
+          mode: '0644'
 
-  - name: Install gitui on ubuntu
+      - name: Add Docker repository
+        ansible.builtin.yum_repository:
+          name: docker-ce-stable
+          description: Docker CE Stable - $basearch
+          baseurl: https://download.docker.com/linux/fedora/$releasever/$basearch/stable
+          gpgcheck: yes
+          gpgkey: file:///etc/pki/rpm-gpg/docker-ce.asc
+          enabled: yes
+
+      - name: Install Docker packages
+        dnf:
+          name:
+            - docker-ce
+            - docker-ce-cli
+            - containerd.io
+            - docker-buildx-plugin
+            - docker-compose-plugin
+          state: present
+
+      - name: Enable and start Docker service
+        ansible.builtin.systemd:
+          name: docker
+          enabled: yes
+          state: started
+
+  # DEBIAN - gitui (from GitHub releases; not in apt repos)
+  - name: Install gitui (Debian)
     when: ansible_facts['os_family'] == "Debian"
     become: yes
     shell: |
@@ -159,51 +235,39 @@
       rm "$TARBALL"
       chmod +x gitui
       mv gitui /usr/local/bin
+    args:
+      creates: /usr/local/bin/gitui
 
-  # POSTMAN on Arch (AUR)
-  - name: Install Postman on Arch Linux
+  # ARCH LINUX - autologin setup (hyprlock runs on first Hyprland start)
+  - name: Disable SDDM on Arch if present
     when: ansible_facts['os_family'] == "Archlinux"
-    become: true
-    become_user: "{{ ansible_env.SUDO_USER | default(ansible_env.USER) }}"
-    shell: pacman -Qq postman-bin 2>/dev/null || yay -S --noconfirm postman-bin
-    changed_when: false
-
-  # FASTFETCH (system info on terminal startup)
-  - name: Add fastfetch ppa
-    when: ansible_facts['os_family'] == "Debian"
-    become: true
-    ansible.builtin.apt_repository:
-      repo: ppa:zhangsongcui3371/fastfetch
-  - name: Install fastfetch on Debian
-    when: ansible_facts['os_family'] == "Debian"
-    become: true
-    apt:
-      name: fastfetch
-      state: present
-      update_cache: yes
-
-  # IMAGEMAGICK + LUAROCKS (neovim image preview)
-  - name: Install imagemagick and luarocks on Debian
-    when: ansible_facts['os_family'] == "Debian"
     become: yes
-    apt:
-      name:
-        - imagemagick
-        - luarocks
-      state: present
-      update_cache: yes
+    ansible.builtin.systemd:
+      name: sddm
+      enabled: no
+      state: stopped
+    ignore_errors: yes
 
-
-  # PAVUCONTROL (audio device switcher GUI - desktop only)
-  - name: Install pavucontrol on Debian desktop
-    when: ansible_facts['os_family'] == "Debian" and ubuntu_type == "desktop"
+  - name: Create getty autologin override directory on Arch
+    when: ansible_facts['os_family'] == "Archlinux"
     become: yes
-    apt:
-      name: pavucontrol
-      state: present
+    ansible.builtin.file:
+      path: /etc/systemd/system/getty@tty1.service.d
+      state: directory
+      mode: '0755'
+
+  - name: Configure getty autologin on Arch
+    when: ansible_facts['os_family'] == "Archlinux"
+    become: yes
+    ansible.builtin.copy:
+      dest: /etc/systemd/system/getty@tty1.service.d/override.conf
+      content: |
+        [Service]
+        ExecStart=
+        ExecStart=-/sbin/agetty --autologin shayne --noclear %I $TERM
 
   # BLUETOOTH (Arch only)
-  - name: Enable and start bluetooth service on Arch Linux
+  - name: Enable and start bluetooth service (Arch Linux)
     when: ansible_facts['os_family'] == "Archlinux"
     become: yes
     ansible.builtin.systemd:
@@ -219,8 +283,16 @@
       value: "['!ConnectionNotifier']"
       state: present
 
+  # POSTMAN on Arch (AUR)
+  - name: Install Postman (Arch AUR)
+    when: ansible_facts['os_family'] == "Archlinux"
+    become: true
+    become_user: "{{ ansible_env.SUDO_USER | default(ansible_env.USER) }}"
+    shell: pacman -Qq postman-bin 2>/dev/null || yay -S --noconfirm postman-bin
+    changed_when: false
+
   # AWWW (AUR - Arch only; Ubuntu handled in configure_ubuntu_desktop.yml)
-  - name: Install awww via yay on Arch Linux
+  - name: Install awww via yay (Arch Linux)
     when: ansible_facts['os_family'] == "Archlinux"
     become: true
     become_user: "{{ ansible_env.SUDO_USER | default(ansible_env.USER) }}"
@@ -230,11 +302,19 @@
     changed_when: false
 
   # HYPRIDLE (Arch official repos; Ubuntu handled in configure_ubuntu_desktop.yml)
-  - name: Install hypridle on Arch Linux
+  - name: Install hypridle (Arch Linux)
     when: ansible_facts['os_family'] == "Archlinux"
     become: yes
     pacman:
       name: hypridle
+      state: present
+
+  # DEBIAN DESKTOP - packages only relevant when a GUI is present
+  - name: Install pavucontrol (Debian desktop)
+    when: ansible_facts['os_family'] == "Debian" and ubuntu_type == "desktop"
+    become: yes
+    apt:
+      name: pavucontrol
       state: present
 
   # CLAUDE CODE (all platforms)
