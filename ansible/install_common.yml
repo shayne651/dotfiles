@@ -66,7 +66,7 @@
       - unzip
       - ImageMagick
       - luarocks
-      - starship
+      - dnf-plugins-core
       - chafa
       - fastfetch
       - golang
@@ -106,6 +106,21 @@
     become: yes
     dnf:
       name: "{{ fedora_packages }}"
+      state: present
+
+  # FEDORA - starship (not in default repos; use COPR)
+  - name: Enable starship COPR (Fedora)
+    when: ansible_facts['distribution'] == "Fedora"
+    become: yes
+    community.general.copr:
+      name: atim/starship
+      state: enabled
+
+  - name: Install starship (Fedora)
+    when: ansible_facts['distribution'] == "Fedora"
+    become: yes
+    dnf:
+      name: starship
       state: present
 
   # MACOS - bulk install
