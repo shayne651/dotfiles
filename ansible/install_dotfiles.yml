@@ -1,7 +1,7 @@
 - name: Install dotfiles
   vars:
-    home_dir: "{% if ansible_facts['os_family'] == 'Darwin' %}/Users/{{ ansible_user }}{% else %}/home/{{ ansible_user }}{% endif %}"
-    dotfiles_dir: "{{ home_dir }}/dotfiles"
+    home_dir: "{{ ansible_user_dir }}"
+    dotfiles_dir: "{{ playbook_dir | dirname }}"
 
   block:
     - name: Remove conflicting files
@@ -71,11 +71,9 @@
     # CONFIGURE ZSH
     - name: Install Starship (Debian only — other platforms use package manager)
       when: ansible_facts['os_family'] == "Debian"
-      become: true
       shell: curl -sS https://starship.rs/install.sh | sh -s -- -y
 
     - name: Configure dotfiles with stow
-      become: true
       shell: stow --target="{{ home_dir }}" zshrc
       args:
         chdir: "{{ dotfiles_dir }}"
@@ -89,7 +87,6 @@
 
 # CONFIGURE nvim
     - name: Configure nvim
-      become: true
       shell: |
         stow --target={{ home_dir }} nvim
       args:
@@ -125,7 +122,6 @@
 
 # CONFIGURE ghostty
     - name: Configure ghostty
-      become: true
       shell: |
         stow --target={{ home_dir }} ghostty
       args:
@@ -139,7 +135,6 @@
 
 #CONFIGURE tmux
     - name: Configure tmux
-      become: true
       shell: |
         stow --target={{ home_dir }} tmux
       args:

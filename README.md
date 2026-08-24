@@ -13,6 +13,9 @@ git submodule update --init --recursive
 ### 2. Run Ansible
 ```sh
 ansible-playbook ansible/main.yml -u $USER --ask-become-pass
+
+Run as your normal login user, not with `sudo`; the playbook uses sudo only
+for system changes so dotfiles are installed into your user home directory.
 ```
 
 Or via Make:

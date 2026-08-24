@@ -76,13 +76,6 @@
 
   block:
 
-  # DEBIAN - add fastfetch PPA before bulk install
-  - name: Add fastfetch PPA (Debian)
-    when: ansible_facts['os_family'] == "Debian"
-    become: yes
-    ansible.builtin.apt_repository:
-      repo: ppa:zhangsongcui3371/fastfetch
-
   # ARCH LINUX - bulk install
   - name: Install packages (Arch Linux)
     when: ansible_facts['os_family'] == "Archlinux"
@@ -269,7 +262,7 @@
       else
         TARBALL="gitui-linux-musl.tar.gz"
       fi
-      URL=$(curl -Ls https://api.github.com/repos/gitui-org/gitui/releases/latest | grep -o "https://[^\"]*${TARBALL}")
+      URL=$(curl -Ls https://api.github.com/repos/extrawurst/gitui/releases/latest | grep -o "https://[^\"]*${TARBALL}")
       wget -q "$URL" -O "$TARBALL"
       tar xzvf "$TARBALL"
       rm "$TARBALL"
