@@ -2,6 +2,10 @@
 - name: Setup system
   hosts: localhost
   gather_facts: yes
+  # Makefile authenticates sudo before Ansible starts. Do not let the
+  # become plugin open a second prompt through the localhost connection.
+  vars:
+    ansible_become_flags: "-n"
 
   tasks:
 #    - name: Validate become password
