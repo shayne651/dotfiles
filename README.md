@@ -23,6 +23,10 @@ Or via Make:
 make install
 ```
 
+`make install` validates your sudo session before starting Ansible, so the
+password is entered in a normal terminal prompt instead of timing out inside
+Ansible.
+
 ## Submodules
 
 | Path | Description |
