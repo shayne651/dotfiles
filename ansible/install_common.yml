@@ -144,20 +144,20 @@
       name: "{{ ansible_env.USER }}"
       shell: /usr/bin/zsh
 
-  # DEBIAN - snap installs (nvim, go — Ubuntu keeps snap; Fedora uses dnf)
-  - name: Install nvim via snap (Debian)
+  # DEBIAN - install from apt (no Snap usage)
+  - name: Install Neovim via apt (Debian)
     when: ansible_facts['os_family'] == "Debian"
     become: yes
-    snap:
-      name: nvim
-      classic: yes
+    apt:
+      name: neovim
+      state: present
 
-  - name: Install go via snap (Debian)
+  - name: Install Go via apt (Debian)
     when: ansible_facts['os_family'] == "Debian"
     become: yes
-    snap:
-      name: go
-      classic: yes
+    apt:
+      name: golang
+      state: present
 
   # DEBIAN - Docker (official repo)
   - name: Install docker (Debian)

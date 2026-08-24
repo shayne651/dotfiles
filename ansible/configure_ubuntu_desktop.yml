@@ -62,15 +62,12 @@
       enabled: yes
       state: started
 
-# INSTALLING ghostty
+# INSTALLING ghostty from apt (no Snap usage)
   - name: Installing ghostty
     when: ubuntu_type == "desktop"
-    snap:
+    become: yes
+    apt:
       name: ghostty
-      classic: yes
+      state: present
 
-# INSTALLING postman
-  - name: Install postman on ubuntu
-    when: ubuntu_type == "desktop"
-    snap:
-      name: postman
+# Postman has no Ubuntu apt package; it is intentionally not installed.
